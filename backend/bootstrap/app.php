@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Cookie/session auth for the SPA (Sanctum stateful mode).
         $middleware->statefulApi();
+
+        // HTML guests (e.g. on /horizon) go to the Filament panel login;
+        // there is no route named "login" in this application.
+        $middleware->redirectGuestsTo(fn () => route('filament.admin.auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

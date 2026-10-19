@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Horizon\Horizon;
 use Laravel\Horizon\HorizonApplicationServiceProvider;
@@ -23,14 +26,17 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     /**
      * Register the Horizon gate.
      *
-     * This gate determines who can access Horizon in non-local environments.
+     * This gate determines who can access Horizon. It is enforced through the
+     * "can:viewHorizon" middleware on every Horizon route (see
+     * config/horizon.php), so access is restricted regardless of the
+     * environment Horizon itself would allow in "local".
      */
     protected function gate(): void
     {
-        Gate::define('viewHorizon', function ($user = null) {
-            return in_array(optional($user)->email, [
-                //
-            ]);
+        Gate::define('viewHorizon', function (?User $user): bool {
+            return $user !== null
+                && $user->role === UserRole::Admin
+                && $user->status === UserStatus::Approved;
         });
     }
 }
