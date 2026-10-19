@@ -1,0 +1,35 @@
+# env (frontend и backend)
+.env
+.env.*
+!.env.example
+
+# зависимости и сборки
+node_modules/
+vendor/
+.next/
+out/
+
+# laravel
+backend/storage/*.key
+backend/storage/logs/
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/public/storage
+backend/.phpunit.cache/
+backend/public/hot
+
+# прочее
+*.log
+*.sql
+*.dump
+*.zip
+*.tar
+*.tar.gz
+*.pem
+*.key
+auth.json
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
