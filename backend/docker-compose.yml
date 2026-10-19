@@ -1,0 +1,87 @@
+# All secrets / names come from backend/.env via ${VAR} (compose reads .env next to this file).
+# Postgres and Redis ports are intentionally NOT published to the host.
+
+services:
+  # php-fpm + nginx, application code bind-mounted from backend/
+  backend:
+    build:
+      context: ./docker
+    image: auction-backend
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  horizon:
+    image: auction-backend
+    command: php artisan horizon
+    volumes:
+      - .:/var/www
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    image: auction-backend
+    command: php artisan schedule:work
+    volumes:
+      - .:/var/www
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # $$ escapes so the variables are evaluated inside the container, not on the host
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # UI published only; SMTP (1025) is reachable inside the compose network as mailpit:1025
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
