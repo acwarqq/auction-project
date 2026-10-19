@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->seedAdmin();
         $this->seedTestUsers();
+        $this->call(AuctionSeeder::class);
     }
 
     /**

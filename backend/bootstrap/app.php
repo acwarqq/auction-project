@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsApproved;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -15,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Cookie/session auth for the SPA (Sanctum stateful mode).
         $middleware->statefulApi();
+
+        // Registered routes may require a reviewed account: ->middleware('approved').
+        $middleware->alias([
+            'approved' => EnsureUserIsApproved::class,
+        ]);
 
         // HTML guests (e.g. on /horizon) go to the Filament panel login;
         // there is no route named "login" in this application.

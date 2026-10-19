@@ -11,6 +11,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -34,6 +35,24 @@ class User extends Authenticatable implements FilamentUser
             'role' => UserRole::class,
             'status' => UserStatus::class,
         ];
+    }
+
+    /** Lots put up for sale by this user. */
+    public function auctions(): HasMany
+    {
+        return $this->hasMany(Auction::class);
+    }
+
+    /** Bids placed by this user on any lot. */
+    public function bids(): HasMany
+    {
+        return $this->hasMany(Bid::class);
+    }
+
+    /** Lots this user has won. */
+    public function wonAuctions(): HasMany
+    {
+        return $this->hasMany(Auction::class, 'winner_id');
     }
 
     /**
